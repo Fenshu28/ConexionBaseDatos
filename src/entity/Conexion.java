@@ -16,10 +16,11 @@ public class Conexion {
 
     private boolean existBd = false;
     private boolean existTable = false;
-    private Connection con;
+    private Connection con = null;
     private Statement st;
     private ResultSet rs;
     private String bdName;
+    private String tableName;
 
     public Conexion() {
 
@@ -33,7 +34,7 @@ public class Conexion {
         return existTable;
     }
 
-    private void conect(String base) {
+    private boolean conect(String base) {
         try {
 
             Class.forName("org.postgresql.Driver");
@@ -46,8 +47,12 @@ public class Conexion {
                 st = con.createStatement();
             }
         } catch (Exception ex) {
-            System.out.println("Error al conectar: " + ex.getMessage());
+            if(ex.getMessage().contains("no existe"))
+                return  false;
+            else
+                System.out.println("Error al conectar: " + ex.getMessage());
         }
+        return true;
     }
 
     private void disconect() {
@@ -65,35 +70,31 @@ public class Conexion {
     }
 
     private boolean baseExist(String bdName) {
-        String consulta = "SELECT 1 FROM pg_database WHERE datname = '" + bdName + "'";
-
-        conect("");
-
-        try {
-            existBd = st.execute(consulta);
-        } catch (SQLException ex) {
-            System.out.println("Error al consultar si existe la base de datos: "
-                    + ex.getMessage());
-        }
+        existBd=conect(bdName);
+        if(existBd)
+            disconect();
         return existBd;
     }
-    
-    private boolean tableExist(DatabaseMetaData metaData, String tableName) throws SQLException {
+
+    private boolean tableExist(String tableName) throws SQLException {
+        conect(bdName);
+        DatabaseMetaData metaData = con.getMetaData();
+        disconect();
         try (var rs = metaData.getTables(null, null, tableName, null)) {
-            return rs.next();
+            existTable = rs.next();
+            return existTable;
         }
     }
 
     public void crearBase(String baseName) {
         try {
-            conect("");
 
             if (!baseExist(baseName)) {
+                conect("");
                 st.execute("create database " + baseName);
+                disconect();
             }
 
-            disconect();
-            
             bdName = baseName;
         } catch (SQLException ex) {
             System.out.println("Error al crear la base de datos: " + ex.getMessage());
@@ -101,20 +102,23 @@ public class Conexion {
     }
 
     public void crearTabla(String nombreT) {
-//        try {
-//            conect(bdName);
-//
-//            if (!tableExist(baseName)) {
-//                st.execute("create database " + baseName);
-//            }
-//
-//            disconect();
-//            
-//            bdName = baseName;
-//        } catch (SQLException ex) {
-//            System.out.println("Error al crear la base de datos: " + ex.getMessage());
-//        }
+        try {
+            conect(bdName);
+
+            if (!tableExist(nombreT)) {
+                st.execute("create table " + nombreT
+                        + " (matricula varchar(11) PRIMARY KEY,"
+                        + "nombre varchar(30),"
+                        + "carrera varchar(11))");
+            }
+
+            disconect();
+
+            tableName = nombreT;
+        } catch (SQLException ex) {
+            System.out.println("Error al crear la tabla " + nombreT
+                    + ": " + ex.getMessage());
+        }
     }
 
-    
 }
