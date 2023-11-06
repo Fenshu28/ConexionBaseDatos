@@ -22,8 +22,10 @@ public class Conexion {
     private String bdName;
     private String tableName;
 
-    public Conexion() {
-
+    public Conexion(String bdName, String tableName) {
+        if (baseExist(bdName)) {
+            tableExist(tableName);
+        }
     }
 
     public boolean isExistBd() {
@@ -47,10 +49,11 @@ public class Conexion {
                 st = con.createStatement();
             }
         } catch (Exception ex) {
-            if(ex.getMessage().contains("no existe"))
-                return  false;
-            else
+            if (ex.getMessage().contains("no existe")) {
+                return false;
+            } else {
                 System.out.println("Error al conectar: " + ex.getMessage());
+            }
         }
         return true;
     }
@@ -70,20 +73,36 @@ public class Conexion {
     }
 
     private boolean baseExist(String bdName) {
-        existBd=conect(bdName);
-        if(existBd)
+        existBd = conect(bdName);
+        if (existBd) {
+            this.bdName = bdName;
             disconect();
+        }
         return existBd;
     }
 
-    private boolean tableExist(String tableName) throws SQLException {
-        conect(bdName);
-        DatabaseMetaData metaData = con.getMetaData();
-        disconect();
+    private boolean tableExist(String tableName) {
+        DatabaseMetaData metaData = null;
+        try {
+            if (con != null || con.isClosed()) {
+                conect(bdName);
+            }
+            metaData = con.getMetaData();
+        } catch (SQLException ex) {
+            System.out.println("Error con el metaData.");
+        }
+
         try (var rs = metaData.getTables(null, null, tableName, null)) {
             existTable = rs.next();
             return existTable;
+        } catch (SQLException ex) {
+            System.out.println("Error con el metadate next o no se encontro"
+                    + "la tabla.");
         }
+
+        disconect();
+
+        return false;
     }
 
     public void crearBase(String baseName) {
@@ -121,4 +140,52 @@ public class Conexion {
         }
     }
 
+    public void crearRegistro(Alumno a) {
+        String sqlQuery = "insert into m506 (matricula,nombre,carreta)"
+                + " values ('" + a.getMatricula() + "','" + a.getNombre()
+                + "','" + a.getCarrera() + "')";
+        conect(bdName);
+        try {
+
+            st.execute(sqlQuery);
+            disconect();
+        } catch (SQLException ex) {
+            System.out.println("Error al insetar.");
+        }
+    }
+
+    public void actualizarRegistro(int id, Alumno... a) {
+        String sqlQuery = "insert into m506 (matricula,nombre,carreta)"
+                + " values ('" + a[0].getMatricula() + "','" + a[0].getNombre()
+                + "','" + a[0].getCarrera() + "')";
+        conect(bdName);
+        try {
+
+            st.executeUpdate(sqlQuery);
+            disconect();
+        } catch (SQLException ex) {
+            System.out.println("Error al insetar.");
+        }
+    }
+
+    public Alumno consultarRegistro(int id) {
+        String sqlQuery = "SELECT * FROM alumno WHERE matricula = '" + id + "'";
+        
+        Alumno aTemp = null;
+        
+        conect(bdName);
+        try {
+
+            rs = st.executeQuery(sqlQuery);
+            aTemp = new Alumno(rs.getInt(1),
+                    rs.getString(2),
+                    rs.getString(3));
+            disconect();
+        } catch (SQLException ex) {
+            System.out.println("Error al consultar.");
+        }
+        
+        return aTemp;
+
+    }
 }

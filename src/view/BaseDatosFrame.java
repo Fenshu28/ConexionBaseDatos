@@ -3,6 +3,7 @@ package view;
 import com.formdev.flatlaf.FlatLightLaf;
 import entity.Conexion;
 import java.awt.Component;
+import javax.swing.JOptionPane;
 import javax.swing.UIManager;
 
 public class BaseDatosFrame extends javax.swing.JFrame {
@@ -13,22 +14,31 @@ public class BaseDatosFrame extends javax.swing.JFrame {
         initComponents();
         txtBuscar.putClientProperty("JTextField.placeholderText",
                 "Buscar...");
-        con = new Conexion();
+        con = new Conexion("octubre", "alumno");
         checkBD();
     }
 
+    // Juego de booleanos
     private void checkBD() {
         if (con.isExistBd()) {
-            btnCrearTab.setEnabled(true);
-            for (Component component : pnlDatos.getComponents()) {
-                component.setEnabled(true);
+            btnCrearBd.setEnabled(false);
+            
+            if (con.isExistTable()) {
+                btnCrearTab.setEnabled(false);
+                for (Component component : pnlDatos.getComponents()) {
+                    component.setEnabled(true);
+                }
+            } else {
+                btnCrearTab.setEnabled(true);
+                for (Component component : pnlDatos.getComponents()) {
+                    component.setEnabled(false);
+                }
             }
         } else {
             btnCrearTab.setEnabled(false);
-            for (Component component : pnlDatos.getComponents()) {
-                component.setEnabled(false);
-            }
+            btnCrearBd.setEnabled(true);
         }
+
     }
 
     @SuppressWarnings("unchecked")
@@ -87,19 +97,33 @@ public class BaseDatosFrame extends javax.swing.JFrame {
         });
 
         btnBuscar.setText("Buscar");
+        btnBuscar.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnBuscarActionPerformed(evt);
+            }
+        });
 
         tblDatos.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null}
+
             },
             new String [] {
-                "Title 1", "Title 2", "Title 3", "Title 4"
+                "id", "Nombre", "Carrera"
             }
-        ));
+        ) {
+            boolean[] canEdit = new boolean [] {
+                false, false, false
+            };
+
+            public boolean isCellEditable(int rowIndex, int columnIndex) {
+                return canEdit [columnIndex];
+            }
+        });
         jScrollPane1.setViewportView(tblDatos);
+        if (tblDatos.getColumnModel().getColumnCount() > 0) {
+            tblDatos.getColumnModel().getColumn(0).setPreferredWidth(5);
+            tblDatos.getColumnModel().getColumn(2).setResizable(false);
+        }
 
         javax.swing.GroupLayout pnlDatosLayout = new javax.swing.GroupLayout(pnlDatos);
         pnlDatos.setLayout(pnlDatosLayout);
@@ -176,11 +200,17 @@ public class BaseDatosFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_btnCrearBdActionPerformed
 
     private void btnCrearTabActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCrearTabActionPerformed
-        // TODO add your handling code here:
+        con.crearTabla("alumno");
+        checkBD();
     }//GEN-LAST:event_btnCrearTabActionPerformed
 
     private void btnInsertActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnInsertActionPerformed
-        // TODO add your handling code here:
+        JOptionPane.showInputDialog(this, "", "",
+                JOptionPane.INFORMATION_MESSAGE,
+                null, new String[4], null);
+//        while () {
+//            
+//        }
     }//GEN-LAST:event_btnInsertActionPerformed
 
     private void btnActuaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnActuaActionPerformed
@@ -190,6 +220,10 @@ public class BaseDatosFrame extends javax.swing.JFrame {
     private void btnEliminarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEliminarActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_btnEliminarActionPerformed
+
+    private void btnBuscarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBuscarActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_btnBuscarActionPerformed
     public static void main(String args[]) {
         try {
             UIManager.setLookAndFeel(new FlatLightLaf());
