@@ -1,20 +1,25 @@
 package view;
 
 import com.formdev.flatlaf.FlatLightLaf;
+import entity.Alumno;
 import entity.Conexion;
 import java.awt.Component;
 import javax.swing.JOptionPane;
 import javax.swing.UIManager;
+import javax.swing.table.DefaultTableModel;
 
 public class BaseDatosFrame extends javax.swing.JFrame {
 
     private Conexion con;
+    private DefaultTableModel modelTab;
 
     public BaseDatosFrame() {
         initComponents();
         txtBuscar.putClientProperty("JTextField.placeholderText",
                 "Buscar...");
         con = new Conexion("octubre", "alumno");
+        modelTab = (DefaultTableModel) tblDatos.getModel();
+
         checkBD();
     }
 
@@ -22,12 +27,13 @@ public class BaseDatosFrame extends javax.swing.JFrame {
     private void checkBD() {
         if (con.isExistBd()) {
             btnCrearBd.setEnabled(false);
-            
+
             if (con.isExistTable()) {
                 btnCrearTab.setEnabled(false);
                 for (Component component : pnlDatos.getComponents()) {
                     component.setEnabled(true);
                 }
+                llenarTabla();
             } else {
                 btnCrearTab.setEnabled(true);
                 for (Component component : pnlDatos.getComponents()) {
@@ -39,6 +45,46 @@ public class BaseDatosFrame extends javax.swing.JFrame {
             btnCrearBd.setEnabled(true);
         }
 
+    }
+
+    private String datoString(String dato) {
+        String aTemp = null;
+
+        do {
+            aTemp = JOptionPane.showInputDialog(this, "Ingresa " + dato,
+                    "",
+                    JOptionPane.INFORMATION_MESSAGE);
+        } while (aTemp.isEmpty());
+
+        return aTemp;
+    }
+
+    private int datoInt(String dato) {
+        String aTemp;
+        int matTemp;
+
+        do {
+            aTemp = JOptionPane.showInputDialog(this, "Ingresa " + dato,
+                    "",
+                    JOptionPane.INFORMATION_MESSAGE);
+        } while (aTemp.isEmpty());
+        matTemp = Integer.parseInt(aTemp);
+        return matTemp;
+    }
+
+    private void llenarTabla() {
+        Object[] obj;
+        modelTab.setRowCount(0);
+
+        for (Alumno consultarRegistro : con.consultarRegistros()) {
+            obj = new Object[3];
+
+            obj[0] = consultarRegistro.getMatricula();
+            obj[1] = consultarRegistro.getNombre();
+            obj[2] = consultarRegistro.getCarrera();
+
+            modelTab.addRow(obj);
+        }
     }
 
     @SuppressWarnings("unchecked")
@@ -76,6 +122,7 @@ public class BaseDatosFrame extends javax.swing.JFrame {
         pnlDatos.setBorder(javax.swing.BorderFactory.createTitledBorder("Datos alumno"));
 
         btnInsert.setText("Insertar alumno");
+        btnInsert.setEnabled(false);
         btnInsert.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btnInsertActionPerformed(evt);
@@ -83,6 +130,7 @@ public class BaseDatosFrame extends javax.swing.JFrame {
         });
 
         btnActua.setText("Actualizar alumno");
+        btnActua.setEnabled(false);
         btnActua.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btnActuaActionPerformed(evt);
@@ -90,13 +138,17 @@ public class BaseDatosFrame extends javax.swing.JFrame {
         });
 
         btnEliminar.setText("Eliminar alumno");
+        btnEliminar.setEnabled(false);
         btnEliminar.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btnEliminarActionPerformed(evt);
             }
         });
 
+        txtBuscar.setEnabled(false);
+
         btnBuscar.setText("Buscar");
+        btnBuscar.setEnabled(false);
         btnBuscar.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btnBuscarActionPerformed(evt);
@@ -205,16 +257,15 @@ public class BaseDatosFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_btnCrearTabActionPerformed
 
     private void btnInsertActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnInsertActionPerformed
-        JOptionPane.showInputDialog(this, "", "",
-                JOptionPane.INFORMATION_MESSAGE,
-                null, new String[4], null);
-//        while () {
-//            
-//        }
+        Alumno aTemp = new Alumno(datoInt("matricula"),
+                datoString("nombre del alumno"),
+                datoString("carrera"));
+        con.crearRegistro(aTemp);
+        llenarTabla();
     }//GEN-LAST:event_btnInsertActionPerformed
 
     private void btnActuaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnActuaActionPerformed
-        // TODO add your handling code here:
+        System.out.println(modelTab.getValueAt(tblDatos.getSelectedRow(), 0).toString());
     }//GEN-LAST:event_btnActuaActionPerformed
 
     private void btnEliminarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEliminarActionPerformed
@@ -222,7 +273,8 @@ public class BaseDatosFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_btnEliminarActionPerformed
 
     private void btnBuscarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBuscarActionPerformed
-        // TODO add your handling code here:
+        int id = Integer.parseInt(modelTab.getValueAt(tblDatos.getSelectedRow(), 0).toString());
+        con.consultarRegistros(id);
     }//GEN-LAST:event_btnBuscarActionPerformed
     public static void main(String args[]) {
         try {

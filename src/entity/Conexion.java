@@ -11,6 +11,8 @@ import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Conexion {
 
@@ -24,7 +26,10 @@ public class Conexion {
 
     public Conexion(String bdName, String tableName) {
         if (baseExist(bdName)) {
-            tableExist(tableName);
+            this.bdName = bdName;
+            if (tableExist(tableName)) {
+                this.tableName = tableName;
+            }
         }
     }
 
@@ -141,38 +146,46 @@ public class Conexion {
     }
 
     public void crearRegistro(Alumno a) {
-        String sqlQuery = "insert into m506 (matricula,nombre,carreta)"
+        String sqlQuery = "insert into " + tableName + " (matricula,nombre,carrera)"
                 + " values ('" + a.getMatricula() + "','" + a.getNombre()
                 + "','" + a.getCarrera() + "')";
         conect(bdName);
         try {
-
             st.execute(sqlQuery);
             disconect();
         } catch (SQLException ex) {
-            System.out.println("Error al insetar.");
+            System.out.println("Error al insetar. \n" + ex.getMessage());
         }
     }
 
     public void actualizarRegistro(int id, Alumno... a) {
-        String sqlQuery = "insert into m506 (matricula,nombre,carreta)"
-                + " values ('" + a[0].getMatricula() + "','" + a[0].getNombre()
-                + "','" + a[0].getCarrera() + "')";
+        String sqlQuery;
+        if (a.length > 0) {
+            sqlQuery = "update " + tableName + " set "
+                    + "matricula='" + a[0].getMatricula()
+                    + "',nombre = '" + a[0].getNombre()
+                    + "',carrera = '" + a[0].getCarrera() + "' "
+                    + "where matricula = '" + a[0].getMatricula() + "'";
+        } else {
+            sqlQuery = "delete from " + tableName + " where matricula = '"
+                    + a[0].getMatricula() + "'";
+        }
+
         conect(bdName);
         try {
 
             st.executeUpdate(sqlQuery);
             disconect();
         } catch (SQLException ex) {
-            System.out.println("Error al insetar.");
+            System.out.println("Error al actualizar. \n" + ex.getMessage());
         }
     }
 
     public Alumno consultarRegistro(int id) {
-        String sqlQuery = "SELECT * FROM alumno WHERE matricula = '" + id + "'";
-        
+        String sqlQuery = "SELECT * FROM " + tableName + " WHERE matricula = '" + id + "'";
+
         Alumno aTemp = null;
-        
+
         conect(bdName);
         try {
 
@@ -182,10 +195,33 @@ public class Conexion {
                     rs.getString(3));
             disconect();
         } catch (SQLException ex) {
-            System.out.println("Error al consultar.");
+            System.out.println("Error al consultar. \n" + ex.getMessage());
         }
-        
-        return aTemp;
 
+        return aTemp;
+    }
+
+    public List<Alumno> consultarRegistros(int... id) {
+        String sqlQuery = "SELECT * FROM " + tableName;
+        if(id.length>0)
+            sqlQuery += " WHERE matricula like '" + id + "'";
+        
+        List<Alumno> aTemp = new ArrayList<>();
+
+        conect(bdName);
+        try {
+
+            rs = st.executeQuery(sqlQuery);
+            while (rs.next()) {
+                aTemp.add(new Alumno(rs.getInt(1),
+                        rs.getString(2),
+                        rs.getString(3)));
+            }
+            disconect();
+        } catch (SQLException ex) {
+            System.out.println("Error al consultar. \n" + ex.getMessage());
+        }
+
+        return aTemp;
     }
 }
