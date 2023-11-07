@@ -44,7 +44,7 @@ public class BaseDatosFrame extends javax.swing.JFrame {
             btnCrearTab.setEnabled(false);
             btnCrearBd.setEnabled(true);
         }
-
+        this.pack();
     }
 
     private String datoString(String dato) {
@@ -255,11 +255,13 @@ public class BaseDatosFrame extends javax.swing.JFrame {
     private void btnCrearBdActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCrearBdActionPerformed
         con.crearBase("Octubre");
         checkBD();
+        System.out.println("ss");
     }//GEN-LAST:event_btnCrearBdActionPerformed
 
     private void btnCrearTabActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCrearTabActionPerformed
         con.crearTabla("alumno");
         checkBD();
+        System.out.println("sst");
     }//GEN-LAST:event_btnCrearTabActionPerformed
 
     private void btnInsertActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnInsertActionPerformed
