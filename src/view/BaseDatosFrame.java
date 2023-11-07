@@ -72,6 +72,12 @@ public class BaseDatosFrame extends javax.swing.JFrame {
         return matTemp;
     }
 
+    private Alumno pedirDatos() {
+        return new Alumno(datoInt("matricula"),
+                datoString("nombre completo"),
+                datoString(""));
+    }
+
     private void llenarTabla() {
         Object[] obj;
         modelTab.setRowCount(0);
@@ -257,23 +263,35 @@ public class BaseDatosFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_btnCrearTabActionPerformed
 
     private void btnInsertActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnInsertActionPerformed
-        Alumno aTemp = new Alumno(datoInt("matricula"),
-                datoString("nombre del alumno"),
-                datoString("carrera"));
+        Alumno aTemp = pedirDatos();
         con.crearRegistro(aTemp);
         llenarTabla();
     }//GEN-LAST:event_btnInsertActionPerformed
 
     private void btnActuaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnActuaActionPerformed
-        System.out.println(modelTab.getValueAt(tblDatos.getSelectedRow(), 0).toString());
+        con.actualizarRegistro(Integer.parseInt(modelTab.getValueAt(
+                tblDatos.getSelectedRow(), 0).toString()),
+                pedirDatos());
     }//GEN-LAST:event_btnActuaActionPerformed
 
     private void btnEliminarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEliminarActionPerformed
-        // TODO add your handling code here:
+        int id = Integer.parseInt(modelTab.getValueAt(
+                tblDatos.getSelectedRow(), 0).toString());
+        if (JOptionPane.showConfirmDialog(this,
+                "¿Estas seguro que desea eliminar?",
+                "Elimnar", JOptionPane.YES_NO_OPTION) == 0 && id > 0) {
+            con.actualizarRegistro(id);
+        }
+
     }//GEN-LAST:event_btnEliminarActionPerformed
 
     private void btnBuscarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBuscarActionPerformed
-        int id = Integer.parseInt(modelTab.getValueAt(tblDatos.getSelectedRow(), 0).toString());
+        int id;
+        if (!txtBuscar.getText().isEmpty()) {
+            id = Integer.parseInt(txtBuscar.getText());
+        } else {
+            return;
+        }
         con.consultarRegistros(id);
     }//GEN-LAST:event_btnBuscarActionPerformed
     public static void main(String args[]) {
